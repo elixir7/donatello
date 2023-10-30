@@ -20,14 +20,10 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "usb_device.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdbool.h>
-#include "usbd_cdc_if.h"
 
 /* USER CODE END Includes */
 
@@ -38,8 +34,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TX_SIZE 50
-#define RX_SIZE 50
 
 /* USER CODE END PD */
 
@@ -49,31 +43,20 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-osThreadId defaultTaskHandle;
-osThreadId loggingTaskHandle;
+
 /* USER CODE BEGIN PV */
-uint8_t buffer_tx[TX_SIZE] = "Hello world!\r\n";
-uint8_t buffer_rx[RX_SIZE] = {0};
-
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-void StartDefaultTask(void const * argument);
-void loggingStartTask(void const * argument);
-
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-float k = 0;
-float x = 0;
-float y = 0;
-bool button = false;
+
 /* USER CODE END 0 */
 
 /**
@@ -108,34 +91,8 @@ int main(void)
 
   /* USER CODE END 2 */
 
-  /* USER CODE BEGIN RTOS_MUTEX */
-    /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-    /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-    /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-    /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-  /* definition and creation of loggingTask */
-  osThreadDef(loggingTask, loggingStartTask, osPriorityLow, 0, 2056);
-  loggingTaskHandle = osThreadCreate(osThread(loggingTask), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-    /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
 
   /* Start scheduler */
   osKernelStart();
@@ -200,110 +157,9 @@ void SystemClock_Config(void)
   HAL_RCC_EnableCSS();
 }
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : BUTTON_Pin */
-  GPIO_InitStruct.Pin = BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(BUTTON_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
-
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
-}
-
 /* USER CODE BEGIN 4 */
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-    button = !button;
-}
-
-int _write(int file, uint8_t *ptr, int len) {
-    static uint8_t rc = USBD_OK;
-
-    do {
-        rc = CDC_Transmit_FS(ptr, len);
-    } while (USBD_BUSY == rc);
-
-    if (USBD_FAIL == rc) {
-        /// NOTE: Should never reach here.
-        /// TODO: Handle this error.
-        return 0;
-    }
-    return len;
-}
-
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
- * @brief  Function implementing the defaultTask thread.
- * @param  argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
-{
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN 5 */
-    /* Infinite loop */
-    for(;;)
-    {
-        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-        k += 0.1;
-        x = 10*cos(k);
-        y = 10*sin(k);
-        osDelay(50);
-    }
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_loggingStartTask */
-/**
- * @brief Function implementing the loggingTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_loggingStartTask */
-void loggingStartTask(void const * argument)
-{
-  /* USER CODE BEGIN loggingStartTask */
-    /* Infinite loop */
-    for(;;)
-    {
-        printf("/*%.3f,%.3f,%d*/\r\n", x, y, button);
-        osDelay(100);
-    }
-  /* USER CODE END loggingStartTask */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

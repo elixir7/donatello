@@ -68,8 +68,8 @@ all: main-build
 main-build: donatello.elf secondary-outputs
 
 # Tool invocations
-donatello.elf donatello.map: $(OBJS) $(USER_OBJS) C:\Users\Isak\STM32CubeIDE\workspace_1.13.2\donatello\STM32F411CEUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "donatello.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Isak\STM32CubeIDE\workspace_1.13.2\donatello\STM32F411CEUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="donatello.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+donatello.elf donatello.map: $(OBJS) $(USER_OBJS) C:\Users\Isak\code\donatello\STM32F411CEUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "donatello.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Isak\code\donatello\STM32F411CEUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="donatello.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

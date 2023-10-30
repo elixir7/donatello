@@ -1,1 +1,5 @@
-../Core/Src/freertos.c:62:6:vApplicationGetIdleTaskMemory	1
+../Core/Src/freertos.c:84:6:vApplicationGetIdleTaskMemory	1
+../Core/Src/freertos.c:98:6:MX_FREERTOS_Init	1
+../Core/Src/freertos.c:141:6:StartDefaultTask	1
+../Core/Src/freertos.c:165:6:StartLoggigTask	1
+../Core/Src/freertos.c:184:6:HAL_GPIO_EXTI_Callback	1

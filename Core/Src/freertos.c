@@ -1,30 +1,36 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdbool.h>
+#include "usbd_cdc_if.h"
+#include "cli.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,7 +40,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define TX_SIZE 50
+#define RX_SIZE 50
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,13 +51,28 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+uint8_t buffer_tx[TX_SIZE] = "Hello world!\r\n";
+uint8_t buffer_rx[RX_SIZE] = {0};
+
+float k = 0;
+float x = 0;
+float y = 0;
+bool button = false;
 
 /* USER CODE END Variables */
+osThreadId defaultTaskHandle;
+osThreadId loggingTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
+
+void StartDefaultTask(void const * argument);
+void StartLoggigTask(void const * argument);
+
+extern void MX_USB_DEVICE_Init(void);
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
@@ -61,14 +83,120 @@ static StackType_t xIdleStack[configMINIMAL_STACK_SIZE];
 
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
 {
-  *ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
-  *ppxIdleTaskStackBuffer = &xIdleStack[0];
-  *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
-  /* place for user code */
+	*ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
+	*ppxIdleTaskStackBuffer = &xIdleStack[0];
+	*pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+	/* place for user code */
 }
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
+/**
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void) {
+	/* USER CODE BEGIN Init */
+
+	/* USER CODE END Init */
+
+	/* USER CODE BEGIN RTOS_MUTEX */
+	/* add mutexes, ... */
+	/* USER CODE END RTOS_MUTEX */
+
+	/* USER CODE BEGIN RTOS_SEMAPHORES */
+	/* add semaphores, ... */
+	/* USER CODE END RTOS_SEMAPHORES */
+
+	/* USER CODE BEGIN RTOS_TIMERS */
+	/* start timers, add new ones, ... */
+	/* USER CODE END RTOS_TIMERS */
+
+	/* USER CODE BEGIN RTOS_QUEUES */
+	/* add queues, ... */
+	/* USER CODE END RTOS_QUEUES */
+
+	/* Create the thread(s) */
+	/* definition and creation of defaultTask */
+	osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 128);
+	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+	/* definition and creation of loggingTask */
+	osThreadDef(loggingTask, StartLoggigTask, osPriorityLow, 0, 2056);
+	loggingTaskHandle = osThreadCreate(osThread(loggingTask), NULL);
+
+	/* USER CODE BEGIN RTOS_THREADS */
+	/* add threads, ... */
+	/* USER CODE END RTOS_THREADS */
+
+}
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+	/* init code for USB_DEVICE */
+	MX_USB_DEVICE_Init();
+	/* USER CODE BEGIN StartDefaultTask */
+	/* Infinite loop */
+	for(;;)
+	{
+//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		k += 0.1;
+		x = 10*cos(k);
+		y = 10*sin(k);
+		osDelay(50);
+	}
+	/* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_StartLoggigTask */
+/**
+ * @brief Function implementing the loggingTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartLoggigTask */
+void StartLoggigTask(void const * argument)
+{
+	/* USER CODE BEGIN StartLoggigTask */
+	cli_init();
+	/* Infinite loop */
+	for(;;)
+	{
+//		printf("/*%.3f,%.3f,%d*/\r\n", x, y, button);
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//		cli_printf("LED with args: %s and %s", "Isak", "Janina");
+		cli_process();
+		osDelay(100);
+
+	}
+	/* USER CODE END StartLoggigTask */
+}
+
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+    button = !button;
+}
 
+//int _write(int file, uint8_t *ptr, int len) {
+//    static uint8_t rc = USBD_OK;
+//
+//    do {
+//        rc = CDC_Transmit_FS(ptr, len);
+//    } while (USBD_BUSY == rc);
+//
+//    if (USBD_FAIL == rc) {
+//        /// NOTE: Should never reach here.
+//        /// TODO: Handle this error.
+//        return 0;
+//    }
+//    return len;
+//}
 /* USER CODE END Application */
