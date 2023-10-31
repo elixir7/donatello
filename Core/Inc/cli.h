@@ -23,14 +23,16 @@
  * Can make smaller to decrease RAM usage,
  * make larger to be able to print longer strings.
  */
-#define CLI_PRINT_BUFFER_SIZE 512
+#define CLI_PRINTF_BUFFER_SIZE 1048
 
 
 void cli_init(void);
-void cli_printf(const char *format, ...);
-EmbeddedCli * cli_get_pointer();
-void cli_receive_byte(uint8_t c);
 void cli_process(void);
+void cli_clear(void);
+void cli_printf(const char *format, ...);
+void cli_receive_byte(uint8_t c);
+EmbeddedCli * cli_get_pointer();
+
 
 
 #endif /* INC_CLI_H_ */

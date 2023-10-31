@@ -51,17 +51,15 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-uint8_t buffer_tx[TX_SIZE] = "Hello world!\r\n";
-uint8_t buffer_rx[RX_SIZE] = {0};
-
-float k = 0;
-float x = 0;
-float y = 0;
+uint8_t rx_buffer[16];
+uint8_t i_rx;
+uint8_t tx_buffer[1048];
+uint8_t i_tx;
 bool button = false;
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId loggingTaskHandle;
+osThreadId cliTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -69,7 +67,7 @@ osThreadId loggingTaskHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-void StartLoggigTask(void const * argument);
+void StartCLITask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -91,43 +89,43 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
 void MX_FREERTOS_Init(void) {
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* USER CODE BEGIN RTOS_MUTEX */
+  /* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
-	/* USER CODE END RTOS_MUTEX */
+  /* USER CODE END RTOS_MUTEX */
 
-	/* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
 	/* add semaphores, ... */
-	/* USER CODE END RTOS_SEMAPHORES */
+  /* USER CODE END RTOS_SEMAPHORES */
 
-	/* USER CODE BEGIN RTOS_TIMERS */
+  /* USER CODE BEGIN RTOS_TIMERS */
 	/* start timers, add new ones, ... */
-	/* USER CODE END RTOS_TIMERS */
+  /* USER CODE END RTOS_TIMERS */
 
-	/* USER CODE BEGIN RTOS_QUEUES */
+  /* USER CODE BEGIN RTOS_QUEUES */
 	/* add queues, ... */
-	/* USER CODE END RTOS_QUEUES */
+  /* USER CODE END RTOS_QUEUES */
 
-	/* Create the thread(s) */
-	/* definition and creation of defaultTask */
-	osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 128);
-	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-	/* definition and creation of loggingTask */
-	osThreadDef(loggingTask, StartLoggigTask, osPriorityLow, 0, 2056);
-	loggingTaskHandle = osThreadCreate(osThread(loggingTask), NULL);
+  /* definition and creation of cliTask */
+  osThreadDef(cliTask, StartCLITask, osPriorityLow, 0, 2056);
+  cliTaskHandle = osThreadCreate(osThread(cliTask), NULL);
 
-	/* USER CODE BEGIN RTOS_THREADS */
+  /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
-	/* USER CODE END RTOS_THREADS */
+  /* USER CODE END RTOS_THREADS */
 
 }
 
@@ -140,43 +138,65 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-	/* init code for USB_DEVICE */
-	MX_USB_DEVICE_Init();
-	/* USER CODE BEGIN StartDefaultTask */
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN StartDefaultTask */
 	/* Infinite loop */
 	for(;;)
 	{
 //		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		k += 0.1;
-		x = 10*cos(k);
-		y = 10*sin(k);
+//		k += 0.1;
+//		x = 10*cos(k);
+//		y = 10*sin(k);
 		osDelay(50);
 	}
-	/* USER CODE END StartDefaultTask */
+  /* USER CODE END StartDefaultTask */
 }
 
-/* USER CODE BEGIN Header_StartLoggigTask */
+/* USER CODE BEGIN Header_StartCLITask */
 /**
- * @brief Function implementing the loggingTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartLoggigTask */
-void StartLoggigTask(void const * argument)
+* @brief Function implementing the cliTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCLITask */
+void StartCLITask(void const * argument)
 {
+  /* USER CODE BEGIN StartCLITask */
+
 	/* USER CODE BEGIN StartLoggigTask */
 	cli_init();
 	/* Infinite loop */
 	for(;;)
 	{
-//		printf("/*%.3f,%.3f,%d*/\r\n", x, y, button);
-		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//		cli_printf("LED with args: %s and %s", "Isak", "Janina");
+		// Task should handle the following:
+		// 1. Handle received characters that have been placed in Que by CDC_Receive interrupt
+		// 2. Handle outgoing characters that have been placed in a Que
+		// 3. CLI Process
+
+		// Handle all received characters
+		for(int i = 0; i < i_rx; i++){
+			cli_receive_byte(rx_buffer[i]);
+		}
+		memset(rx_buffer, 0, sizeof(rx_buffer));
+		i_rx = 0;
+
+
+		// Handle outgoing characters
+		uint8_t res = CDC_Transmit_FS(tx_buffer, i_tx);
+		if (res == USBD_OK){
+			memset(tx_buffer, 0, sizeof(tx_buffer));
+			i_tx = 0;
+		}
+
+
 		cli_process();
-		osDelay(100);
+
+//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		osDelay(50);
 
 	}
-	/* USER CODE END StartLoggigTask */
+  /* USER CODE END StartCLITask */
 }
 
 /* Private application code --------------------------------------------------*/
@@ -184,6 +204,17 @@ void StartLoggigTask(void const * argument)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
     button = !button;
 }
+
+void rtos_add_rx(uint8_t c){
+	rx_buffer[i_rx++] = c;
+}
+
+
+
+void rtos_add_tx(uint8_t c){
+	tx_buffer[i_tx++] = c;
+}
+
 
 //int _write(int file, uint8_t *ptr, int len) {
 //    static uint8_t rc = USBD_OK;

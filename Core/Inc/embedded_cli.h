@@ -825,10 +825,10 @@ void embeddedCliProcess(EmbeddedCli *cli) {
     PREPARE_IMPL(cli);
 
 
-    if (!IS_FLAG_SET(impl->flags, CLI_FLAG_INIT_COMPLETE)) {
-        SET_FLAG(impl->flags, CLI_FLAG_INIT_COMPLETE);
-        writeToOutput(cli, impl->invitation);
-    }
+//    if (!IS_FLAG_SET(impl->flags, CLI_FLAG_INIT_COMPLETE)) {
+//        SET_FLAG(impl->flags, CLI_FLAG_INIT_COMPLETE);
+//        writeToOutput(cli, impl->invitation);
+//    }
 
     while (fifoBufAvailable(&impl->rxBuffer)) {
         char c = fifoBufPop(&impl->rxBuffer);
