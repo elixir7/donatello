@@ -135,8 +135,7 @@ standard names. */
 
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-void rtos_add_rx(uint8_t c);
-void rtos_add_tx(uint8_t c);
+
 /* USER CODE END Defines */
 
 #endif /* FREERTOS_CONFIG_H */

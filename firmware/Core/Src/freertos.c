@@ -40,8 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TX_SIZE 50
-#define RX_SIZE 50
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,11 +50,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-uint8_t rx_buffer[16];
-uint8_t i_rx;
-uint8_t tx_buffer[1048];
-uint8_t i_tx;
-bool button = false;
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -201,33 +195,4 @@ void StartCLITask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-    button = !button;
-}
-
-void rtos_add_rx(uint8_t c){
-	rx_buffer[i_rx++] = c;
-}
-
-
-
-void rtos_add_tx(uint8_t c){
-	tx_buffer[i_tx++] = c;
-}
-
-
-//int _write(int file, uint8_t *ptr, int len) {
-//    static uint8_t rc = USBD_OK;
-//
-//    do {
-//        rc = CDC_Transmit_FS(ptr, len);
-//    } while (USBD_BUSY == rc);
-//
-//    if (USBD_FAIL == rc) {
-//        /// NOTE: Should never reach here.
-//        /// TODO: Handle this error.
-//        return 0;
-//    }
-//    return len;
-//}
 /* USER CODE END Application */

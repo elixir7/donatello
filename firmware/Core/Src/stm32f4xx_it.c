@@ -88,11 +88,16 @@ void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
+	// TODO: Macro wrap this function to see where it was from.
+	char buffer[50] = "====== ERROR HANDLER ======";
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	CDC_Transmit_FS(buffer, strlen(buffer));
+
+
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // Make it clear we have an error
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
