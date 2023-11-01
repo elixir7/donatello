@@ -25,11 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdbool.h>
-#include "usbd_cdc_if.h"
+#include "coms.h"
 #include "cli.h"
 /* USER CODE END Includes */
 
@@ -50,10 +46,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+osThreadId comsTaskHandle;
+osThreadId cliTaskHandle;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId cliTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -61,26 +57,9 @@ osThreadId cliTaskHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-void StartCLITask(void const * argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-
-/* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
-
-/* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
-static StaticTask_t xIdleTaskTCBBuffer;
-static StackType_t xIdleStack[configMINIMAL_STACK_SIZE];
-
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
-{
-	*ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
-	*ppxIdleTaskStackBuffer = &xIdleStack[0];
-	*pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
-	/* place for user code */
-}
-/* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
   * @brief  FreeRTOS initialization
@@ -113,12 +92,12 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* definition and creation of cliTask */
-  osThreadDef(cliTask, StartCLITask, osPriorityLow, 0, 2056);
-  cliTaskHandle = osThreadCreate(osThread(cliTask), NULL);
-
   /* USER CODE BEGIN RTOS_THREADS */
-	/* add threads, ... */
+  osThreadDef(comsTask, coms_task, osPriorityHigh, 0, 256);
+  comsTaskHandle = osThreadCreate(osThread(comsTask), NULL);
+
+  osThreadDef(cliTask, cli_task, osPriorityNormal, 0, 512); // Requires fair amount of space
+  cliTaskHandle = osThreadCreate(osThread(cliTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -138,59 +117,9 @@ void StartDefaultTask(void const * argument)
 	/* Infinite loop */
 	for(;;)
 	{
-//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//		k += 0.1;
-//		x = 10*cos(k);
-//		y = 10*sin(k);
-		osDelay(50);
+		osDelay(500);
 	}
   /* USER CODE END StartDefaultTask */
-}
-
-/* USER CODE BEGIN Header_StartCLITask */
-/**
-* @brief Function implementing the cliTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartCLITask */
-void StartCLITask(void const * argument)
-{
-  /* USER CODE BEGIN StartCLITask */
-
-	/* USER CODE BEGIN StartLoggigTask */
-	cli_init();
-	/* Infinite loop */
-	for(;;)
-	{
-		// Task should handle the following:
-		// 1. Handle received characters that have been placed in Que by CDC_Receive interrupt
-		// 2. Handle outgoing characters that have been placed in a Que
-		// 3. CLI Process
-
-		// Handle all received characters
-		for(int i = 0; i < i_rx; i++){
-			cli_receive_byte(rx_buffer[i]);
-		}
-		memset(rx_buffer, 0, sizeof(rx_buffer));
-		i_rx = 0;
-
-
-		// Handle outgoing characters
-		uint8_t res = CDC_Transmit_FS(tx_buffer, i_tx);
-		if (res == USBD_OK){
-			memset(tx_buffer, 0, sizeof(tx_buffer));
-			i_tx = 0;
-		}
-
-
-		cli_process();
-
-//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		osDelay(50);
-
-	}
-  /* USER CODE END StartCLITask */
 }
 
 /* Private application code --------------------------------------------------*/

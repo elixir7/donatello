@@ -11,7 +11,7 @@
 #include "embedded_cli.h"
 
 // Definitions for CLI sizes
-#define CLI_BUFFER_SIZE 2048
+#define CLI_BUFFER_SIZE 4096
 #define CLI_RX_BUFFER_SIZE 16
 #define CLI_CMD_BUFFER_SIZE 32
 #define CLI_HISTORY_SIZE 32
@@ -32,6 +32,8 @@ void cli_clear(void);
 void cli_printf(const char *format, ...);
 void cli_receive_byte(uint8_t c);
 EmbeddedCli * cli_get_pointer();
+
+void cli_task(void const * argument);
 
 
 

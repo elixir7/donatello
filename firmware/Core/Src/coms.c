@@ -7,10 +7,15 @@
  *      Author: Isak
  */
 
-#include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "usbd_cdc_if.h"
+#include "FreeRTOS.h"
+#include "cmsis_os.h"
+
 #include "coms.h"
+#include "cli.h"
 
 
 #define TX_SIZE 1048
