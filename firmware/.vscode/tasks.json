@@ -1,0 +1,57 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build",
+            "command": "cmake",
+            "args": ["--build", "${command:cmake.buildDirectory}", "-j", "8"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": ["$gcc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Clean",
+            "command": "cmake",
+            "args": ["--build", "${command:cmake.buildDirectory}", "--target", "clean"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Clean&Build",
+            "command": "cmake",
+            "args": ["--build", "${command:cmake.buildDirectory}", "--clean-first", "-v", "-j", "8"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": ["$gcc"],
+        },
+        {
+            "type": "shell",
+            "label": "Flash",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "--connect",
+                "port=swd",
+                "mode=UR",  //Under reset
+                "--download", "${command:cmake.launchTargetPath}",
+                "-hardRst", // Hardware reset - if rst pin is connected
+                "-rst",     // Software reset (backup)
+                "--start"   // Start execution
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
