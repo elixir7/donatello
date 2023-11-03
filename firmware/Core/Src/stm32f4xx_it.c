@@ -93,8 +93,7 @@ void HardFault_Handler(void)
 	// TODO: Macro wrap this function to see where it was from.
 	uint8_t buffer[50] = "====== ERROR HANDLER ======";
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	CDC_Transmit_FS(buffer, (const char *) strlen(buffer));
-
+	CDC_Transmit_FS(buffer, (uint16_t) strlen((const char *) buffer));
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
