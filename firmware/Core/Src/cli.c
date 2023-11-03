@@ -5,17 +5,17 @@
  *      Author: Isak
  */
 
-#include "stm32f4xx_it.h"
-
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "usbd_cdc_if.h"
-#include "FreeRTOSConfig.h"
 
+#include "stm32f4xx_it.h"
+#include "cmsis_os.h"
+#include "main.h"
 
 #include "cli.h"
+#include "coms.h"
 #define EMBEDDED_CLI_IMPL
 #include "embedded_cli.h"
 
@@ -42,7 +42,7 @@ void s_cli_clear(EmbeddedCli *cli, char *args, void *context){
 }
 
 static void cli_write_char(EmbeddedCli *embeddedCli, char c) {
-	rtos_add_tx(c);
+	coms_add_tx(c);
 }
 
 
@@ -98,9 +98,9 @@ void cli_init(void){
 		char error_buffer[100] = {0};
 		uint16_t size = embeddedCliRequiredSize(config);
 		uint16_t len = sprintf(error_buffer, "CLI could not be created, required size: %ud", size);
-		uint16_t res = CDC_Transmit_FS((uint8_t *) error_buffer, len);
-		if (res != USBD_OK){
-			HardFault_Handler();
+		// TODO: Use coms_trannsmit() once implemented
+		for(int i = 0; i < len; i++){
+			coms_add_tx((uint8_t) error_buffer[i]);
 		}
 	}
 
@@ -176,7 +176,7 @@ void cli_printf(const char *format, ...) {
 
     // Check if string fitted in buffer else print error to stderr
     if (length < 0) {
-    	Error_Handler(); // print out error?
+    	cli_printf("printf needs more buffer size!");
     }
 
     // Call embeddedCliPrint with the formatted string
@@ -204,6 +204,16 @@ void cli_process(void){
  */
 void cli_clear(void){
 	s_cli_clear(cli, NULL, NULL);
+}
+
+
+void cli_task(void const * argument){
+	cli_init();
+
+	for(;;){
+		cli_process();
+		osDelay(50);
+	}
 }
 
 

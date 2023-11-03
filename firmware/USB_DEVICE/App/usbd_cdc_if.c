@@ -22,8 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-#include "cli.h"
-#include "FreeRTOSConfig.h"
+#include "coms.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -264,8 +263,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
 	// Received characters should individually be sent to the CLI
 	for(int i = 0; i < *Len; i++){
-		rtos_add_rx(Buf[i]);
-//		cli_receive_byte(Buf[i]);
+		coms_add_rx(Buf[i]);
 	}
 
 

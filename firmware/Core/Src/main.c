@@ -24,12 +24,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -170,7 +169,13 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
-    printf("[ERROR] Hard error\r\n");
+
+    // TODO: Macro wrap this function to see where it was from.
+    char buffer[50] = "====== ERROR HANDLER ======";
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+    CDC_Transmit_FS(buffer, strlen(buffer));
+
+
     while (1)
     {
     }
