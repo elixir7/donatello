@@ -28,6 +28,31 @@ static uint8_t s_tx_buffer[TX_SIZE];
 static uint8_t s_i_tx;
 
 
+static void s_handle_rx(void){
+	if (!s_i_rx){
+			return;
+		}
+
+	for(int i = 0; i < s_i_rx; i++){
+		cli_receive_byte(s_rx_buffer[i]);
+	}
+	memset(s_rx_buffer, 0, sizeof(s_rx_buffer));
+	s_i_rx = 0;
+}
+
+static void s_handle_tx(void){
+	if (!s_i_tx){
+		return;
+	}
+
+	uint8_t res = CDC_Transmit_FS(s_tx_buffer, s_i_tx);
+	if (res == USBD_OK){
+		memset(s_tx_buffer, 0, sizeof(s_tx_buffer));
+		s_i_tx = 0;
+	}
+}
+
+
 
 void coms_task(void const * argument){
 	// Task should handle the following:
@@ -35,18 +60,13 @@ void coms_task(void const * argument){
 	// 2. Handle outgoing characters that have been placed in a Que
 	for(;;){
 		// Handle all received characters
-		for(int i = 0; i < s_i_rx; i++){
-			cli_receive_byte(s_rx_buffer[i]);
+		if (s_i_rx){
+			s_handle_rx();
 		}
-		memset(s_rx_buffer, 0, sizeof(s_rx_buffer));
-		s_i_rx = 0;
-
 
 		// Handle outgoing characters
-		uint8_t res = CDC_Transmit_FS(s_tx_buffer, s_i_tx);
-		if (res == USBD_OK){
-			memset(s_tx_buffer, 0, sizeof(s_tx_buffer));
-			s_i_tx = 0;
+		if (s_i_tx){
+			s_handle_tx();
 		}
 
 		osDelay(50);
