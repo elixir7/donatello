@@ -2,18 +2,18 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "cppbuild",
+            "type": "shell",
             "label": "Build",
             "command": "cmake",
             "args": ["--build", "${command:cmake.buildDirectory}", "-j", "8"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": ["$gcc"],
             "group": {
                 "kind": "build",
-                "isDefault": true
-            }
+                "isDefault": true,
+            },
+            "problemMatcher": ["$gcc"],
         },
         {
             "type": "shell",
