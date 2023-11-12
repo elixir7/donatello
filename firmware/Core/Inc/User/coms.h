@@ -12,9 +12,8 @@
 
 void coms_add_rx(uint8_t c);
 void coms_add_tx(uint8_t c);
-void coms_task(void const * argument);
+void coms_task(void const* argument);
 
 //TODO: coms_trannsmit(const uint8_t * buffer, uint16_t len)
-
 
 #endif /* INC_COMS_H_ */

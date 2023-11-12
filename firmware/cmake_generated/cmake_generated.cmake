@@ -22,8 +22,6 @@ set(linker_script_SRC ${linker_script_SRC}
 
 # Sources
 set(sources_SRCS ${sources_SRCS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cli.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/coms.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/freertos.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c

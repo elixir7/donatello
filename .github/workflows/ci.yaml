@@ -1,0 +1,62 @@
+name: CI
+
+on: [push]
+
+env:
+  BUILD_TYPE: Debug
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    name : build
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./firmware
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install GCC and add to Path
+      uses: carlosperate/arm-none-eabi-gcc-action@v1
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v4
+
+    - name: Configure CMake
+      run: cmake --preset ${{env.BUILD_TYPE}} 
+
+    - name: Build
+      run: cmake --build --preset ${{env.BUILD_TYPE}}  
+
+
+  test: 
+    name: cppcheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./firmware
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt-get install cppcheck
+      - run: cppcheck --enable=all --quiet --inconclusive --suppress=unusedFunction --suppress=missingInclude --error-exitcode=1 ${{ github.workspace }}/firmware/Core/Src/User
+      #- run: sudo apt-get install clang-tidy
+      #- run: clang-tidy ${{ github.workspace }}/firmware/Core/Src
+
+  linting:
+    name: clang-format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./firmware
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: sudo apt update
+      - run: sudo apt install -y wget
+      - run: wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.4/clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz -O release_clag.tar.xz
+      - run: tar xf release_clag.tar.xz
+      - run: sudo cp -R clang*/* /usr/local
+      - run: python run-clang-format.py -r Core/Src/User Core/Inc/User
+      #- run: clang-format -style=file -Werror Core/Src/cli.c # Old implementation
