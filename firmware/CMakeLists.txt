@@ -68,10 +68,15 @@ include("cmake_generated/cmake_generated.cmake")
 set(sources_SRCS ${sources_SRCS}
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/User/cli.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/User/coms.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/User/button.c
+    # Third party libraries
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lwbtn/Src/lwbtn.c
 )
 
 set(include_c_DIRS ${include_c_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    #Third party libraries
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lwbtn/Inc
 )
 
 # Link directories setup
