@@ -17,6 +17,7 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_it.h"
 
+#include "User/button.h"
 #include "User/cli.h"
 #include "User/coms.h"
 #include "main.h"
@@ -29,9 +30,10 @@ static void s_cli_clear(EmbeddedCli* cli, char* args, void* context);
 static void s_cli_write_char(EmbeddedCli* cli, char c);
 
 // Bindings
-static void s_get_led(EmbeddedCli* cli, char* args, void* context);
-static void s_set_led(EmbeddedCli* cli, char* args, void* context);
-static void s_toggle_led(EmbeddedCli* cli, char* args, void* context);
+static void s_led_get(EmbeddedCli* cli, char* args, void* context);
+static void s_led_set(EmbeddedCli* cli, char* args, void* context);
+static void s_led_toggle(EmbeddedCli* cli, char* args, void* context);
+static void s_button_get_state(EmbeddedCli* cli, char* args, void* context);
 
 // ============= Private variables ===================
 static EmbeddedCli* cli;
@@ -48,24 +50,11 @@ static void s_cli_write_char(EmbeddedCli* cli, char c) {
     coms_add_tx(c);
 }
 
-static void s_get_inputs(EmbeddedCli* cli, char* args, void* context) {
-    const char* arg1 = embeddedCliGetToken(args, 1);
-    const char* arg2 = embeddedCliGetToken(args, 2);
-
-    if (arg1 == NULL || arg2 == NULL) {
-        cli_printf("usage: get-led [arg1] [arg2]");
-        return;
-    }
-
-    // Make sure to check if 'args' != NULL, printf's '%s' formatting does not like a null pointer.
-    cli_printf("LED with args: %s and %s", arg1, arg2);
-}
-
-static void s_get_led(EmbeddedCli* cli, char* args, void* context) {
+static void s_led_get(EmbeddedCli* cli, char* args, void* context) {
     cli_printf("LED state: %s", HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin) == GPIO_PIN_SET ? "ON" : "OFF");
 }
 
-static void s_set_led(EmbeddedCli* cli, char* args, void* context) {
+static void s_led_set(EmbeddedCli* cli, char* args, void* context) {
     const char* arg1 = embeddedCliGetToken(args, 1);
 
     if (!strcmp(arg1, "1") || !strcmp(arg1, "true")) {
@@ -77,8 +66,12 @@ static void s_set_led(EmbeddedCli* cli, char* args, void* context) {
     }
 }
 
-static void s_toggle_led(EmbeddedCli* cli, char* args, void* context) {
+static void s_led_toggle(EmbeddedCli* cli, char* args, void* context) {
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+}
+
+static void s_button_get_state(EmbeddedCli* cli, char* args, void* context) {
+    cli_printf("Button state: %u", button_get_state());
 }
 
 // ==================== Global function implementation ==========================
@@ -123,21 +116,33 @@ void cli_init(void) {
 
     // Add all the initial command bindings
     CliCommandBinding clear_binding = {
-        .name = "clear", .help = "Clears the console", .tokenizeArgs = true, .context = NULL, .binding = s_cli_clear
+        .name = "clear", .help = "Clears the console", .tokenizeArgs = false, .context = NULL, .binding = s_cli_clear
     };
     CliCommandBinding led_get_binding = {
-        .name = "get-led", .help = "Get led status", .tokenizeArgs = true, .context = NULL, .binding = s_get_led
+        .name = "led-get", .help = "Get led status", .tokenizeArgs = false, .context = NULL, .binding = s_led_get
     };
     CliCommandBinding led_set_binding = {
-        .name = "set-led", .help = "Set led state", .tokenizeArgs = true, .context = NULL, .binding = s_set_led
+        .name = "led-set", .help = "Set led state", .tokenizeArgs = true, .context = NULL, .binding = s_led_set
     };
     CliCommandBinding led_toggle_binding = {
-        .name = "toggle-led", .help = "Toggle led state", .tokenizeArgs = true, .context = NULL, .binding = s_toggle_led
+        .name = "led-toggle",
+        .help = "Toggle led state",
+        .tokenizeArgs = false,
+        .context = NULL,
+        .binding = s_led_toggle
+    };
+    CliCommandBinding button_get_binding = {
+        .name = "button-get",
+        .help = "Get button state",
+        .tokenizeArgs = false,
+        .context = NULL,
+        .binding = s_button_get_state
     };
     embeddedCliAddBinding(cli, clear_binding);
     embeddedCliAddBinding(cli, led_get_binding);
     embeddedCliAddBinding(cli, led_set_binding);
     embeddedCliAddBinding(cli, led_toggle_binding);
+    embeddedCliAddBinding(cli, button_get_binding);
 
     // Init the CLI with blank screen
     cli_clear();

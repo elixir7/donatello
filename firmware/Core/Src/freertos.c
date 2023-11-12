@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "User/button.h"
 #include "User/cli.h"
 #include "User/coms.h"
 /* USER CODE END Includes */
@@ -48,6 +49,7 @@
 /* USER CODE BEGIN Variables */
 osThreadId comsTaskHandle;
 osThreadId cliTaskHandle;
+osThreadId buttonTaskHandle;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -98,6 +100,9 @@ void MX_FREERTOS_Init(void) {
 
     osThreadDef(cliTask, cli_task, osPriorityNormal, 0, 512); // Requires fair amount of space
     cliTaskHandle = osThreadCreate(osThread(cliTask), NULL);
+
+    osThreadDef(buttonTask, button_task, osPriorityNormal, 0, 512);
+    buttonTaskHandle = osThreadCreate(osThread(buttonTask), NULL);
     /* USER CODE END RTOS_THREADS */
 }
 

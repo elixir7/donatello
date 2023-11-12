@@ -235,7 +235,7 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length) {
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t* Len) {
     /* USER CODE BEGIN 6 */
     // Received characters should individually be sent to the CLI
-    for (int i = 0; i < *Len; i++) {
+    for (uint32_t i = 0; i < *Len; i++) {
         coms_add_rx(Buf[i]);
     }
 
