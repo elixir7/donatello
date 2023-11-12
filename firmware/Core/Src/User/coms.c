@@ -16,8 +16,8 @@
 #include "cmsis_os.h"
 #include "usbd_cdc_if.h"
 
-#include "cli.h"
-#include "coms.h"
+#include "User/cli.h"
+#include "User/coms.h"
 
 #define TX_SIZE 1048
 #define RX_SIZE 50

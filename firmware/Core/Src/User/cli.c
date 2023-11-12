@@ -17,8 +17,8 @@
 #include "cmsis_os.h"
 #include "stm32f4xx_it.h"
 
-#include "cli.h"
-#include "coms.h"
+#include "User/cli.h"
+#include "User/coms.h"
 #include "main.h"
 
 #define EMBEDDED_CLI_IMPL
@@ -40,6 +40,7 @@ static bool         cli_is_ready = false; // Disable usage if cli isn't initiali
 
 //============ Private function implementation ===============
 void s_cli_clear(EmbeddedCli* cli, char* args, void* context) {
+
     cli_printf("\033[2J\033[0;0H"); // Clear screen => Set Cursor to start, will automatically add invitation character
 }
 

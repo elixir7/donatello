@@ -64,6 +64,16 @@ set(linker_OPTS)
 # information to the project
 include("cmake_generated/cmake_generated.cmake")
 
+# Add User files
+set(sources_SRCS ${sources_SRCS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/User/cli.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/User/coms.c
+)
+
+set(include_c_DIRS ${include_c_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+)
+
 # Link directories setup
 # Must be before executable is added
 link_directories(${CMAKE_PROJECT_NAME} ${link_DIRS})
