@@ -1,7 +1,7 @@
 # Donatello - Folkrace car
 Donatello is/to be a autonomous little RC car that is going to compete in RobotSM 2023 in the category Folkrace.
 
-<img src="img/boards_irl.png" alt="PCBs" style="width:200px;"/>
+<img src="img/boards_irl.jpg" alt="PCBs" style="width:200px;"/>
 
 
 ## Idea
