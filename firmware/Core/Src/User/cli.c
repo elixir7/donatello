@@ -4,9 +4,9 @@
  * @brief CLI for terminal style connections to Donatello
  * @version 0.1
  * @date 2023-11-11
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 #include <stdarg.h>
@@ -78,7 +78,7 @@ static void s_button_get_state(EmbeddedCli* cli, char* args, void* context) {
 /**
  * @brief Initialize CLI
  * Will BLOCK in case not enough memory(RAM) has been given to the CLI process
- * 
+ *
  */
 void cli_init(void) {
     EmbeddedCliConfig* config = embeddedCliDefaultConfig();
@@ -116,7 +116,7 @@ void cli_init(void) {
 
     // Add all the initial command bindings
     CliCommandBinding clear_binding = {
-        .name = "clear", .help = "Clears the console", .tokenizeArgs = false, .context = NULL, .binding = s_cli_clear
+        .name = "clc", .help = "Clears the console", .tokenizeArgs = false, .context = NULL, .binding = s_cli_clear
     };
     CliCommandBinding led_get_binding = {
         .name = "led-get", .help = "Get led status", .tokenizeArgs = false, .context = NULL, .binding = s_led_get
@@ -153,7 +153,7 @@ void cli_init(void) {
 
 /**
  * @brief Send characters to the CLI to be processed
- * 
+ *
  * @param c Character to be processed
  */
 void cli_receive_byte(uint8_t c) {
@@ -168,8 +168,8 @@ void cli_receive_byte(uint8_t c) {
  * @brief Printf in the CLI
  * Function to encapsulate the 'embeddedCliPrint()' call with print formatting arguments (act like printf(), but keeps cursor at correct location).
  * The 'embeddedCliPrint()' function does already add a linebreak ('\r\n') to the end of the print statement, so no need to add it yourself.
- * @param format 
- * @param ... 
+ * @param format
+ * @param ...
  */
 void cli_printf(const char* format, ...) {
     char buffer[CLI_PRINTF_BUFFER_SIZE];
@@ -192,8 +192,8 @@ void cli_printf(const char* format, ...) {
 /**
  * @brief Get CLI instance
  * Only one instance of EmbeddedCLI is allowed and can be retrieved with this function
- * 
- * @return EmbeddedCli* 
+ *
+ * @return EmbeddedCli*
  */
 EmbeddedCli* cli_get_pointer() {
     return cli;
@@ -201,7 +201,7 @@ EmbeddedCli* cli_get_pointer() {
 
 /**
  * @brief Get current CLI process
- * 
+ *
  */
 void cli_process(void) {
     embeddedCliProcess(cli);
@@ -209,7 +209,7 @@ void cli_process(void) {
 
 /**
  * @brief Clear terminal and reset cursor
- * 
+ *
  */
 void cli_clear(void) {
     s_cli_clear(cli, NULL, NULL);
